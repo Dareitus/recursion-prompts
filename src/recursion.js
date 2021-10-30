@@ -7,31 +7,144 @@
 // Example: 5! = 5 x 4 x 3 x 2 x 1 = 120
 // factorial(5); // 120
 var factorial = function(n) {
+  //escape case for negative numbers, they dont have factorials
+  if (n < 0) {
+    return null;
+  }
+  //base case - n is zero either at call or by end of recursion
+  if (n === 0) {
+    return 1; //this is just "the math" - the factorial of 0 is 1
+  }
+  //recursive case
+  //number is greater than 0, pass a smaller version into factorial,
+  //causing the process to repeat until number reaches 0 - base case
+  return (n * factorial(n - 1)); //in our example, n is 5, this calls 5 * factorial(4) which will call 4 * factorial(3) til 0
+  //when 0 is called it returns 1, which backflows down the previous call until the math becomes 5*4*3*2*1 and the original function returns 120
 };
 
 // 2. Compute the sum of an array of integers.
 // sum([1,2,3,4,5,6]); // 21
 var sum = function(array) {
+  //escape case for empty
+  if (array.length === 0) {
+    return 0;
+  }
+  //base case
+  //array only has one value - either called with only one value or reduced via recursion
+  if (array.length === 1) {
+    return array[0];
+  }
+  //recursion case
+  //we know there are at least two values left in the array, we know [0] and [1] have values.
+  //create a copy of the array (to avoid mutation of original array) and add [1] to [0] then remove [1]
+  //resulting array will have the sum of first two numbers stored in [0] and remaining numbers in [1] - [x]
+  var arrayCopy = [];
+  for (i = 0; i < array.length; i++) {
+    arrayCopy[i] = array[i];
+  }
+  arrayCopy[0] = arrayCopy[0] + arrayCopy[1];
+  arrayCopy.splice(1, 1);
+  //call for sum again this time on the copy we made. will continue until a copy is made with only one value stored
+  return sum(arrayCopy);
 };
 
 // 3. Sum all numbers in an array containing nested arrays.
 // arraySum([1,[2,3],[[4]],5]); // 15
 var arraySum = function(array) {
+  //need to add checks if [0] or [1] are arrays themselves
+  //anytime we find an array, we wil solve that first before going back
+  //escape case for empty array
+  if (array.length === 0) {
+    return 0;
+  }
+  //Make our copy of the array now, so we can use it when checking for nested arrays
+  //this is only a shallow copy - we will need to check for nested arrays in original array
+  var arrayCopy = [];
+  for (i = 0; i < array.length; i++) {
+    arrayCopy[i] = array[i];
+  }
+  //do we have an array in the first key?
+  if (Array.isArray(array[0])) {
+    //note about shallow copy - we must check against original array because copy is shallow, and wont copy arrays properly
+    //if there IS an array at array[0] there will NOT be a matching array at arrayCopy[0] due to lack of depth
+    ////////////////////////////////////--+*//we can safely ignore this problem here because we are replacing the value with a number via recursion anyway*-----/*
+    arrayCopy[0] = arraySum(array[0]); //if first key is an array, sum it up until it isnt
+  }
+  if (array.length === 1) { //base case - if only one value that isnt an array remains, return it
+    return arrayCopy[0];
+  }
+  if (Array.isArray(array[1])) { //if second key is an array, sum it all up until it isnt
+    arrayCopy[1] = arraySum(array[1]);
+  }
+  arrayCopy[0] = arrayCopy[0] + arrayCopy[1]; //if key 0 an 1 are both not arrays, add them together and remove key 1
+  arrayCopy.splice(1, 1);
+  //call for sum again this time on the copy we made. will continue until a copy is made with only one value stored
+  return arraySum(arrayCopy);
 };
 
 // 4. Check if a number is even.
 var isEven = function(n) {
+  //can't use modulo per the rules - easiest method would be to reduce the number to either 0 or 1 by subrtracting 2
+  //will need to create checks for 0 and negative numbers
+  //check if it is negative. if it is, flip it to a positive so we can work with it
+  if (n < 0) {
+    n *= -1;
+  }
+  //check if it is 0. if it is, the number is (or was) even - base case for even
+  if (n === 0) {
+    return true;
+  }
+  //check if it is 1. if it is, the number is (or was) odd - base case for odd
+  if (n === 1) {
+    return false;
+  }
+  //recursive case - pass n-2 and repeat. for example 3 would check 1 and get false, 4 would check 2, then check 0 and get true
+  return isEven(n-2);
 };
 
 // 5. Sum all integers below a given integer.
-// sumBelow(10); // 45
+// sumBelow(10); // 45 (9+8+7+6+5+4+3+2+1)
 // sumBelow(7); // 21
 var sumBelow = function(n) {
+  //so we want to take the number we are given, subtract 1, and add it to the next number via recursive function
+  //escape case if 0 is passed in
+  if (n === 0){
+    return 0;
+  }
+  //base case - once we see n has reached 1 we can stop adding values (1 was added in the call of this iteration)
+  if (n === 1){
+    return 0;
+  }
+  //recursive case - keep subtracting until we get to 1
+  if (n > 0) {
+    return ((n-1)+sumBelow((n-1)));
+  }
+  //recursive case - same as above but for negative values
+  if (n < 0) {
+    return ((n+1)+sumBelow((n+1)));
+  }
 };
 
 // 6. Get the integers within a range (x, y).
 // range(2,9); // [3,4,5,6,7,8]
 var range = function(x, y) {
+  //base case, if numbers match do not add to the array
+  if (y - x === 0) {
+    return []; //this empty array will be the base we push any future values to
+  } else {
+    if (x < y) {//x less than y version
+      var array = range(x, y - 1); //this will get us an empty array from base case, or begin recursion
+      if((y-1) !== x){ //special case if this is the last loop, don't include it
+        array.push(y-1); //stitches each recursive loop to the array
+      }
+    } else { //x greater than y version
+      var array = range(x, y + 1); //this will get us an empty array from base case, or begin recursion
+      if((y+1) !== x){ //special case if this is the last loop, don't include it
+        array.push(y+1); //stitches each recursive loop to the array
+      }
+    }
+    return array; //return the final array
+  }
 };
 
 // 7. Compute the exponent of a number.
@@ -40,6 +153,15 @@ var range = function(x, y) {
 // exponent(4,3); // 64
 // https://www.khanacademy.org/computing/computer-science/algorithms/recursive-algorithms/a/computing-powers-of-a-number
 var exponent = function(base, exp) {
+  //escape case for 0 exponent
+  //check for even numbers first per optimization request
+  if (exp > 0) {
+    return (base * exponent(base, (exp - 1))); //recursive case - will multiply base * itself * Itself * itself until a 1 is returned by base case
+  } else if (exp === 0) { //base case - once we have run as many recursive loops as required, return a 1 - the 1 won't effect math just gets us out of loop
+      return 1;
+    } else { //if it isnt positive or 0 it must be negative, do the negative loop until 0
+    return (exponent(base, (exp + 1)) / base); //recursive case - exponent math for negative numbers
+  }
 };
 
 // 8. Determine if a number is a power of two.
@@ -47,14 +169,52 @@ var exponent = function(base, exp) {
 // powerOfTwo(16); // true
 // powerOfTwo(10); // false
 var powerOfTwo = function(n) {
+  //16/2=8/2=4/2=2/2=1 1 is always true because 0 power is always 1.
+  //use 1 as base case, divide by 2 until we get to 1 or under 1.
+  //base case
+  if (n === 1){
+    return true;
+  } else if (n > 1) { //recursive case, divide by 2 until we get base case
+    return powerOfTwo((n / 2));
+  } else { //(n < 1)
+    return false; //alternate base case, if number falls below 1 it isnt a power of 2
+  }
 };
 
 // 9. Write a function that reverses a string.
 var reverse = function(string) {
+  //we want to cut letters off and return them one at a time using recursion
+  //recursion works backwards, last called function will finish first:
+  //meaning the last letter cut should be the letter we want first, for hello cut o last
+  //google to find .substr() which will grab "whats left" of the string
+  //.charAt which will grab the specific letter we are cutting out
+  //by working backwards with recursion we can always cut the character at [0]:
+  //meaning I don't need to worry about the length of the string at all
+
+  //base case
+  if (string === "") {
+    return ""; //if the string is empty end the loop and add nothing to the result
+  } else {
+    return (reverse(string.substr(1)) + string.charAt(0)); //grab the first letter, recursive call with remaining letters (if any)
+  }
 };
 
 // 10. Write a function that determines if a string is a palindrome.
 var palindrome = function(string) {
+  //palindrome is the same thing forward and back - racecar
+  //cant just check to see if it matches the reverse.
+  //ignore capitals and spaces
+  //first, "deformat" - remove capitals and spaces
+  string = string.split(" ").join(""); //removes the spaces
+  string = string.toLowerCase();//makes it all lower case
+  //base case 0 or 1 letter left
+  if (string.length <= 1) {
+    return true; //"" is a palindrome, "a" is a palindrome
+  } else if (string.charAt(0) === string.charAt((string.length - 1))) { //if first and last letter match we MAY have a palindrome
+    return palindrome(string.substring(1, (string.length-1))); //recursive case, send string with first and last letter removed. (racecar becomes aceca cec e true)
+  } else {
+    return false; //if at any time a check fails it is no longer possible to be a palindrome
+  }
 };
 
 // 11. Write a function that returns the remainder of x divided by y without using the
